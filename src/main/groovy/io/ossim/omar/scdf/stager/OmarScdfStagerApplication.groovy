@@ -41,6 +41,7 @@ final class OmarScdfStagerApplication {
      */
     @StreamListener(Sink.INPUT)
     public void receiveFilenameToStage(String filename) {
+        logger.debug("Test")
         imageFilename = filename
         logger.info("Received file ${imageFilename} to stage")
     }
