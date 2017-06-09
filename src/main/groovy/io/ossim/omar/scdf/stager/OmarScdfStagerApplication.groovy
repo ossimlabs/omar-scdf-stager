@@ -17,7 +17,7 @@ import org.springframework.messaging.handler.annotation.SendTo
  */
 @SpringBootApplication
 @EnableBinding(Processor.class)
-final class OmarScdfStagerApplication {
+class OmarScdfStagerApplication {
 
     /**
      * The application logger
