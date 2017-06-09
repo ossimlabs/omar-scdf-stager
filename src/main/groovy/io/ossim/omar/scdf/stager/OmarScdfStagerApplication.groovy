@@ -28,6 +28,13 @@ final class OmarScdfStagerApplication {
     private String imageFilename
 
     /**
+     * Constructor
+     */
+    OmarScdfStagerApplication() {
+
+    }
+
+    /**
      * The main entry point of the SCDF Sqs application.
      * @param args
      */
