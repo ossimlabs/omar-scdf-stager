@@ -52,7 +52,7 @@ final class OmarScdfStagerApplication {
         // add raster, etc
 
         stagedFile = new JsonBuilder()
-        stagedFile(filename : filename, stagedSuccessfully : true)
+        stagedFile(filename : filename, stagedSuccessfully : "true")
         stagedFile.toPrettyString()
     }
 }
