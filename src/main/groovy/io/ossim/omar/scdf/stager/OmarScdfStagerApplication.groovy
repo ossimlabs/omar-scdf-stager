@@ -48,7 +48,8 @@ class OmarScdfStagerApplication {
     /**
      * Constructor
      */
-    OmarScdfStagerApplication() {
+    OmarScdfStagerApplication()
+    {
         Init.instance().initialize()
         imageStager = new ImageStager()
     }
@@ -57,20 +58,23 @@ class OmarScdfStagerApplication {
      * The main entry point of the SCDF Sqs application.
      * @param args
      */
-    static void main(String[] args) {
+    static void main(String[] args)
+    {
         SpringApplication.run OmarScdfStagerApplication, args
     }
 
     /**
-     * The callback for when a filename is received
-     * @param message the body of the SQS message from the queue
+     * The method that handles the stage request when a filename is received
+     * @param message the message containing the image filename
      */
     @StreamListener(Processor.INPUT)
     @SendTo(Processor.OUTPUT)
-    final String stageImage(final Message<?> message) {
+    final String handleStageRequest(final Message<?> message)
+    {
         logger.debug("Received message ${message} containing the name of a file to stage")
 
-        if (null != message.payload) {
+        if (null != message.payload)
+        {
             // Parse filename from message
             final def parsedJson = new JsonSlurper().parseText(message.payload)
             logger.debug("parsedJson : ${parsedJson}")
@@ -84,19 +88,65 @@ class OmarScdfStagerApplication {
 
             logger.debug("Stager params:\n ${params}")
 
+            boolean stagedSuccessfully = stageImage()
 
             // Return filename and result of staging request
             JsonBuilder stagedFile = new JsonBuilder()
-            String status = "success"
+            String status = stagedSuccessfully ? "succeeded" : "failed"
             stagedFile(
                     filename : filename,
                     status : status
             )
 
+            logger.debug("Sending result to output stream -- ${stagedFile.toString()}")
             return stagedFile.toString()
-        } else {
+        }
+        else
+        {
             logger.warn("Received null payload for message: ${message}")
             return null
         }
+    }
+
+    /**
+    *
+    */
+    boolean stageImage()
+    {
+      if (imageStager.open(params.filename))
+      {
+          URI uri = new URI(params.filename)
+
+          String scheme = uri.scheme
+          if (!scheme) scheme = "file"
+          if (scheme != "file")
+          {
+              params.buildHistograms = false
+              params.buildOverviews = false
+          }
+
+          boolean successfullyStaged = true
+          Integer entries = imageStager.getNumberOfEntries()
+
+          (0..< entries).each
+          {
+              imageStager.setEntry(it)
+              imageStager.setDefaults()
+              imageStager.setUseFastHistogramStagingFlag(params.useFastHistograms)
+              imageStager.setHistogramStagingFlag(params.buildHistograms)
+              imageStager.setOverviewStagingFlag(params.buildOverviews)
+              imageStager.setCompressionType(params.overviewCompressionType)
+              imageStager.setOverviewType(params.overviewType)
+              boolean result = imageStager.stage()
+
+              if (!result) successfullyStaged = false
+          }
+
+          return successfullyStaged
+      }
+      else
+      {
+        return false
+      }
     }
 }
