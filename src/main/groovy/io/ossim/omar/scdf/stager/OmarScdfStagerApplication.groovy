@@ -51,7 +51,6 @@ class OmarScdfStagerApplication {
     OmarScdfStagerApplication()
     {
         Init.instance().initialize()
-        imageStager = new ImageStager()
     }
 
     /**
@@ -109,44 +108,37 @@ class OmarScdfStagerApplication {
     }
 
     /**
-    *
+    * Method to stage image using the params Map
+    * @return boolean stating whether the image was staged successfully or not
     */
-    boolean stageImage()
+    private boolean stageImage()
     {
-      if (imageStager.open(params.filename))
-      {
-          URI uri = new URI(params.filename)
+        boolean successfullyStaged = false
+        imageStager = new ImageStager()
+        if (imageStager.open(params.filename))
+        {
+            URI uri = new URI(params.filename)
 
-          String scheme = uri.scheme
-          if (!scheme) scheme = "file"
-          if (scheme != "file")
-          {
-              params.buildHistograms = false
-              params.buildOverviews = false
-          }
+            String scheme = uri.scheme
+            if (!scheme) scheme = "file"
+            if (scheme != "file")
+            {
+                params.buildHistograms = false
+                params.buildOverviews = false
+            }
 
-          boolean successfullyStaged = true
-          Integer entries = imageStager.getNumberOfEntries()
+            imageStager.setEntry(0)
+            imageStager.setDefaults()
+            imageStager.setUseFastHistogramStagingFlag(params.useFastHistograms)
+            imageStager.setHistogramStagingFlag(params.buildHistograms)
+            imageStager.setOverviewStagingFlag(params.buildOverviews)
+            imageStager.setCompressionType(params.overviewCompressionType)
+            imageStager.setOverviewType(params.overviewType)
+            successfullyStaged = imageStager.stage()
 
-          (0..< entries).each
-          {
-              imageStager.setEntry(it)
-              imageStager.setDefaults()
-              imageStager.setUseFastHistogramStagingFlag(params.useFastHistograms)
-              imageStager.setHistogramStagingFlag(params.buildHistograms)
-              imageStager.setOverviewStagingFlag(params.buildOverviews)
-              imageStager.setCompressionType(params.overviewCompressionType)
-              imageStager.setOverviewType(params.overviewType)
-              boolean result = imageStager.stage()
-
-              if (!result) successfullyStaged = false
-          }
-
-          return successfullyStaged
-      }
-      else
-      {
-        return false
-      }
+            imageStager.delete()
+            imageStager = null
+        }
+        return successfullyStaged
     }
 }
