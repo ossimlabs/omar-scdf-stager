@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cloud.stream.annotation.EnableBinding
 import org.springframework.cloud.stream.annotation.StreamListener
 import org.springframework.cloud.stream.messaging.Processor
+import org.springframework.messaging.Message
 import org.springframework.messaging.handler.annotation.SendTo
 import joms.oms.Init
 import joms.oms.ImageStager
@@ -66,12 +67,12 @@ class OmarScdfStagerApplication {
      */
     @StreamListener(Processor.INPUT)
     @SendTo(Processor.OUTPUT)
-    String stageImage(String message) {
+    final String stageImage(final Message<?> message) {
         logger.debug("Received message ${message} containing the name of a file to stage")
 
         if (null != message.payload) {
             // Parse filename from message
-            final def parsedJson = new JsonSlurper().parseText(message.payload)
+            final def parsedJson = new JsonSlurper().parseText(message)
             logger.debug("parsedJson : ${parsedJson}")
             final String filename = parsedJson.filename
             logger.debug("filename: ${filename}")
@@ -79,7 +80,7 @@ class OmarScdfStagerApplication {
             // build histograms and overviews, stage image
             logger.debug("Building histograms and overviews for ${filename}")
 
-            params.filename = ${filename}
+            params.filename = filename
 
             logger.debug("Stager params:\n ${params}")
 
@@ -87,7 +88,11 @@ class OmarScdfStagerApplication {
             // Return filename and result of staging request
             JsonBuilder stagedFile = new JsonBuilder()
             String status = "success"
-            stagedFile(filename : filename, status : status)
+            stagedFile(
+                    filename : filename,
+                    status : status
+            )
+
             return stagedFile.toString()
         } else {
             logger.warn("Received null payload for message: ${message}")
