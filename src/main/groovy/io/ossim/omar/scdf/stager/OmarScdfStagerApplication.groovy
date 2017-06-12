@@ -72,7 +72,7 @@ class OmarScdfStagerApplication {
 
         if (null != message.payload) {
             // Parse filename from message
-            final def parsedJson = new JsonSlurper().parseText(message)
+            final def parsedJson = new JsonSlurper().parseText(message.payload)
             logger.debug("parsedJson : ${parsedJson}")
             final String filename = parsedJson.filename
             logger.debug("filename: ${filename}")
