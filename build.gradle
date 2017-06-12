@@ -1,14 +1,14 @@
 buildscript {
-	ext {
-		springBootVersion = '1.5.3.RELEASE'
-	}
+    ext {
+        springBootVersion = '1.5.3.RELEASE'
+    }
 	if(System.env.OMAR_COMMON_PROPERTIES)
 	{
 		apply from: System.env.OMAR_COMMON_PROPERTIES
 	}
 	repositories {
 		mavenLocal()
-//		maven { url "${ossimMavenProxy}" }
+		maven { url "${ossimMavenProxy}" }
 		maven { url "https://repo.grails.org/grails/core" }
 	}
 	dependencies {
@@ -24,11 +24,12 @@ apply plugin: "java"
 apply plugin: "maven-publish"
 apply plugin: "maven"
 
-
 sourceCompatibility = 1.8
 
 repositories {
-	mavenCentral()
+    mavenLocal()
+    maven { url "${ossimMavenProxy}" }
+    mavenCentral()
 }
 
 
@@ -43,6 +44,8 @@ dependencies {
 	compile('org.springframework.cloud:spring-cloud-stream-binder-kafka')
 	compile('org.codehaus.groovy:groovy')
 	compile('org.codehaus.groovy:groovy-json')
+    compile("org.ossim:joms:1.9.0-${buildVersionTag}")
+    compile('org.slf4j:slf4j-api:1.7.21')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
