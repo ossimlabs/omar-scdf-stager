@@ -3,8 +3,7 @@ package io.ossim.omar.scdf.stager
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
-//import org.slf4j.Logger
-//import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cloud.stream.annotation.EnableBinding
@@ -25,11 +24,22 @@ import joms.oms.ImageStager
 @Slf4j
 class OmarScdfStagerApplication {
 
-    /**
-     * The application logger
-     */
-    //private final Logger logger = LoggerFactory.getLogger(this.getClass())
+    // Stager settings, such as whether or not to build histograms and overviews
 
+    @Value('${stager.build.histograms:true}')
+    private boolean buildHistograms
+
+    @Value('${stager.build.overviews:true}')
+    private boolean buildOverviews
+
+    @Value('${stager.use.fast.histograms:false}')
+    private boolean useFastHistograms
+
+    @Value('${stager.overview.compression.type:none}')
+    private String overviewCompressionType
+
+    @Value('${stager.overview.type:ossim_tiff_box}')
+    private String overviewType
 
      /**
      * Constructor
@@ -60,24 +70,21 @@ class OmarScdfStagerApplication {
 
         if (null != message.payload)
         {
-            HashMap params = [
-                    filename : "",
-                    buildHistograms: true,
-                    buildOverviews: true,
-                    useFastHistograms: false,
-                    overviewCompressionType: "none",
-                    overviewType:"ossim_tiff_box"
-            ]
             // Parse filename from message
             final def parsedJson = new JsonSlurper().parseText(message.payload)
-            log.debug("parsedJson : ${parsedJson}")
             final String filename = parsedJson.filename
-            log.debug("filename: ${filename}")
 
             // build histograms and overviews, stage image
             log.debug("Building histograms and overviews for ${filename}")
 
-            params.filename = filename
+            HashMap params = [
+                    filename                     : filename,
+                    buildHistograms              : buildHistograms,
+                    buildOverviews               : buildOverviews,
+                    useFastHistograms            : useFastHistograms,
+                    overviewCompressionType      : overviewCompressionType,
+                    overviewType                 : overviewType
+            ]
 
             log.debug("Stager params:\n ${params}")
 
@@ -85,10 +92,9 @@ class OmarScdfStagerApplication {
 
             // Return filename and result of staging request
             JsonBuilder stagedFile = new JsonBuilder()
-            String status = stagedSuccessfully ? "succeeded" : "failed"
             stagedFile(
                     filename : filename,
-                    status : status
+                    stagedSuccessfully : stagedSuccessfully
             )
 
             log.debug("Sending result to output stream -- ${stagedFile.toString()}")
@@ -109,8 +115,9 @@ class OmarScdfStagerApplication {
     {
         boolean successfullyStaged = true
         def imageStager = new ImageStager()
-        try{
 
+        try
+        {
             if (imageStager.open(params.filename))
             {
                 URI uri = new URI(params.filename)
@@ -121,10 +128,11 @@ class OmarScdfStagerApplication {
                     params.buildHistograms = false
                     params.buildOverviews = false
                 }
-                 Integer nEntries = imageStager.getNumberOfEntries()
-                for(Integer idx = 0; ((idx < nEntries)&&successfullyStaged);++idx)
+
+                Integer entries = imageStager.getNumberOfEntries()
+                for (Integer i = 0; ((i < entries) && successfullyStaged); i++)
                 {
-                    imageStager.setEntry(idx)
+                    imageStager.setEntry(i)
                     imageStager.setDefaults()
                     imageStager.setUseFastHistogramStagingFlag(params.useFastHistograms)
                     imageStager.setHistogramStagingFlag(params.buildHistograms)
@@ -136,17 +144,17 @@ class OmarScdfStagerApplication {
             }
             else
             {
-               successfullyStaged = false 
+               successfullyStaged = false
             }
         }
-        catch(e)
+        catch (e)
         {
            log.error(e.toString())
-           successfullyStaged = false 
+           successfullyStaged = false
         }
-        finally{
+        finally
+        {
             imageStager.delete()
-            imageStager = null                
         }
         return successfullyStaged
     }
