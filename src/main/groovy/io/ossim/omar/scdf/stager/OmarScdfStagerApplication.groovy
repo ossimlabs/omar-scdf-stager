@@ -134,6 +134,10 @@ class OmarScdfStagerApplication {
                     successfullyStaged = imageStager.stage()
                 }
             }
+            else
+            {
+               successfullyStaged = false 
+            }
         }
         catch(e)
         {
