@@ -124,7 +124,7 @@ class OmarScdfStagerApplication {
                  Integer nEntries = imageStager.getNumberOfEntries()
                 for(Integer idx = 0; ((idx < nEntries)&&successfullyStaged);++idx)
                 {
-                    imageStager.setEntry(it)
+                    imageStager.setEntry(idx)
                     imageStager.setDefaults()
                     imageStager.setUseFastHistogramStagingFlag(params.useFastHistograms)
                     imageStager.setHistogramStagingFlag(params.buildHistograms)
