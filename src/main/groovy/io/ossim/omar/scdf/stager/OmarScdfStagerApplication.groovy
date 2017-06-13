@@ -2,8 +2,9 @@ package io.ossim.omar.scdf.stager
 
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import groovy.util.logging.Slf4j
+//import org.slf4j.Logger
+//import org.slf4j.LoggerFactory
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cloud.stream.annotation.EnableBinding
@@ -21,31 +22,16 @@ import joms.oms.ImageStager
  */
 @SpringBootApplication
 @EnableBinding(Processor.class)
+@Slf4j
 class OmarScdfStagerApplication {
 
     /**
      * The application logger
      */
-    private final Logger logger = LoggerFactory.getLogger(this.getClass())
+    //private final Logger logger = LoggerFactory.getLogger(this.getClass())
 
-    /**
-     * Default parameters with example filename
-     */
-    private HashMap params = [
-            filename : "/data/stereo/15JUL19101909-P1BS_R1C1-056263760010_01_P001.NTF",
-            buildHistograms: true,
-            buildOverviews: true,
-            useFastHistograms: false,
-            overviewCompressionType: "none",
-            overviewType:"ossim_tiff_box"
-    ]
 
-    /**
-     * ImageStager member variable
-     */
-    private ImageStager imageStager
-
-    /**
+     /**
      * Constructor
      */
     OmarScdfStagerApplication()
@@ -70,24 +56,32 @@ class OmarScdfStagerApplication {
     @SendTo(Processor.OUTPUT)
     final String handleStageRequest(final Message<?> message)
     {
-        logger.debug("Received message ${message} containing the name of a file to stage")
+        log.debug("Received message ${message} containing the name of a file to stage")
 
         if (null != message.payload)
         {
+            HashMap params = [
+                    filename : "",
+                    buildHistograms: true,
+                    buildOverviews: true,
+                    useFastHistograms: false,
+                    overviewCompressionType: "none",
+                    overviewType:"ossim_tiff_box"
+            ]
             // Parse filename from message
             final def parsedJson = new JsonSlurper().parseText(message.payload)
-            logger.debug("parsedJson : ${parsedJson}")
+            log.debug("parsedJson : ${parsedJson}")
             final String filename = parsedJson.filename
-            logger.debug("filename: ${filename}")
+            log.debug("filename: ${filename}")
 
             // build histograms and overviews, stage image
-            logger.debug("Building histograms and overviews for ${filename}")
+            log.debug("Building histograms and overviews for ${filename}")
 
             params.filename = filename
 
-            logger.debug("Stager params:\n ${params}")
+            log.debug("Stager params:\n ${params}")
 
-            boolean stagedSuccessfully = stageImage()
+            boolean stagedSuccessfully = stageImage(params)
 
             // Return filename and result of staging request
             JsonBuilder stagedFile = new JsonBuilder()
@@ -97,12 +91,12 @@ class OmarScdfStagerApplication {
                     status : status
             )
 
-            logger.debug("Sending result to output stream -- ${stagedFile.toString()}")
+            log.debug("Sending result to output stream -- ${stagedFile.toString()}")
             return stagedFile.toString()
         }
         else
         {
-            logger.warn("Received null payload for message: ${message}")
+            log.warn("Received null payload for message: ${message}")
             return null
         }
     }
@@ -111,33 +105,44 @@ class OmarScdfStagerApplication {
     * Method to stage image using the params Map
     * @return boolean stating whether the image was staged successfully or not
     */
-    private boolean stageImage()
+    private boolean stageImage(HashMap params)
     {
-        boolean successfullyStaged = false
-        imageStager = new ImageStager()
-        if (imageStager.open(params.filename))
-        {
-            URI uri = new URI(params.filename)
+        boolean successfullyStaged = true
+        def imageStager = new ImageStager()
+        try{
 
-            String scheme = uri.scheme
-            if (!scheme) scheme = "file"
-            if (scheme != "file")
+            if (imageStager.open(params.filename))
             {
-                params.buildHistograms = false
-                params.buildOverviews = false
+                URI uri = new URI(params.filename)
+                String scheme = uri.scheme
+                if (!scheme) scheme = "file"
+                if (scheme != "file")
+                {
+                    params.buildHistograms = false
+                    params.buildOverviews = false
+                }
+                 Integer nEntries = imageStager.getNumberOfEntries()
+                for(Integer idx = 0; ((idx < nEntries)&&successfullyStaged);++idx)
+                {
+                    imageStager.setEntry(it)
+                    imageStager.setDefaults()
+                    imageStager.setUseFastHistogramStagingFlag(params.useFastHistograms)
+                    imageStager.setHistogramStagingFlag(params.buildHistograms)
+                    imageStager.setOverviewStagingFlag(params.buildOverviews)
+                    imageStager.setCompressionType(params.overviewCompressionType)
+                    imageStager.setOverviewType(params.overviewType)
+                    successfullyStaged = imageStager.stage()
+                }
             }
-
-            imageStager.setEntry(0)
-            imageStager.setDefaults()
-            imageStager.setUseFastHistogramStagingFlag(params.useFastHistograms)
-            imageStager.setHistogramStagingFlag(params.buildHistograms)
-            imageStager.setOverviewStagingFlag(params.buildOverviews)
-            imageStager.setCompressionType(params.overviewCompressionType)
-            imageStager.setOverviewType(params.overviewType)
-            successfullyStaged = imageStager.stage()
-
+        }
+        catch(e)
+        {
+           log.error(e.toString())
+           successfullyStaged = false 
+        }
+        finally{
             imageStager.delete()
-            imageStager = null
+            imageStager = null                
         }
         return successfullyStaged
     }
