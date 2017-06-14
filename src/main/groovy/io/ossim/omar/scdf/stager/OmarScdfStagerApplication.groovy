@@ -177,6 +177,6 @@ class OmarScdfStagerApplication implements CommandLineRunner {
                             "OSSIM_PREFS_FILE=/usr/share/ossim/ossim-site-preferences",
                             "--env","OSSIM_DATA=/data"]
 
-        Init.instance().initialize(newArgs.size(), newArgs)
+        log.debug("JNI Init arguments remaining: ${Init.instance().initialize(newArgs.size(), newArgs)}")
     }
 }
