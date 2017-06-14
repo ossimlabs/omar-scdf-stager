@@ -172,8 +172,8 @@ class OmarScdfStagerApplication implements CommandLineRunner {
         log.debug("OSSIM_PREFS_FILE: ${ossimPrefsFile}")
         log.debug("OSSIM_DATA: ${ossimData}")
 
-        System.setProperty("OSSIM_PREFS_FILE", ossimPrefsFile)
-        System.setProperty("OSSIM_DATA", ossimData)
+        System.env.OSSIM_PREFS_FILE = ossimPrefsFile
+        System.env.OSSIM_DATA = ossimData
 
         Init.instance().initialize()
     }
