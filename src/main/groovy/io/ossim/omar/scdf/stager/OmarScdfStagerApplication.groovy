@@ -25,10 +25,10 @@ import joms.oms.ImageStager
 class OmarScdfStagerApplication {
 
     // OSSIM Environment variables
-    @Value('${ossim.prefs.file}:/usr/share/ossim/ossim-site-preferences')
+    @Value('${ossim.prefs.file:/usr/share/ossim/ossim-site-preferences}')
     private String ossimPrefsFile
 
-    @Value('${ossim.data}:/data')
+    @Value('${ossim.data:/data}')
     private String ossimData
 
     // Stager settings, such as whether or not to build histograms and overviews
