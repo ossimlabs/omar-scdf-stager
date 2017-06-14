@@ -4,6 +4,7 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cloud.stream.annotation.EnableBinding
@@ -22,7 +23,7 @@ import joms.oms.ImageStager
 @SpringBootApplication
 @EnableBinding(Processor.class)
 @Slf4j
-class OmarScdfStagerApplication {
+class OmarScdfStagerApplication implements CommandLineRunner {
 
     // OSSIM Environment variables
     @Value('${ossim.prefs.file:/usr/share/ossim/ossim-site-preferences}')
@@ -53,9 +54,7 @@ class OmarScdfStagerApplication {
      */
     OmarScdfStagerApplication()
     {
-        System.setProperty("OSSIM_PREFS_FILE", ossimPrefsFile)
-        System.setProperty("OSSIM_DATA", ossimData)
-        Init.instance().initialize()
+
     }
 
     /**
@@ -166,5 +165,16 @@ class OmarScdfStagerApplication {
             imageStager.delete()
         }
         return successfullyStaged
+    }
+
+    @Override
+    void run(String... args) throws Exception {
+        log.debug("OSSIM_PREFS_FILE: ${ossimPrefsFile}")
+        log.debug("OSSIM_DATA: ${ossimData}")
+
+        System.setProperty("OSSIM_PREFS_FILE", ossimPrefsFile)
+        System.setProperty("OSSIM_DATA", ossimData)
+
+        Init.instance().initialize()
     }
 }
