@@ -24,6 +24,13 @@ import joms.oms.ImageStager
 @Slf4j
 class OmarScdfStagerApplication {
 
+    // OSSIM Environment variables
+    @Value('${ossim.prefs.file}:/usr/share/ossim/ossim-site-preferences')
+    private String ossimPrefsFile
+
+    @Value('${ossim.data}:/data')
+    private String ossimData
+
     // Stager settings, such as whether or not to build histograms and overviews
 
     @Value('${stager.build.histograms:true}')
@@ -46,6 +53,8 @@ class OmarScdfStagerApplication {
      */
     OmarScdfStagerApplication()
     {
+        System.setProperty("OSSIM_PREFS_FILE", ossimPrefsFile)
+        System.setProperty("OSSIM_DATA", ossimData)
         Init.instance().initialize()
     }
 
