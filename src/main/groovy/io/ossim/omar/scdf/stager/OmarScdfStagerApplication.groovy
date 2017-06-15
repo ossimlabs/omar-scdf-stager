@@ -23,9 +23,10 @@ import joms.oms.ImageStager
 @SpringBootApplication
 @EnableBinding(Processor.class)
 @Slf4j
-class OmarScdfStagerApplication implements CommandLineRunner {
-
+class OmarScdfStagerApplication implements CommandLineRunner
+{
     // OSSIM Environment variables
+
     @Value('${ossim.prefs.file:/usr/share/ossim/ossim-site-preferences}')
     private String ossimPrefsFile
 
@@ -49,19 +50,11 @@ class OmarScdfStagerApplication implements CommandLineRunner {
     @Value('${stager.overview.type:ossim_tiff_box}')
     private String overviewType
 
-     /**
-     * Constructor
-     */
-    OmarScdfStagerApplication()
-    {
-
-    }
-
     /**
      * The main entry point of the SCDF Sqs application.
      * @param args
      */
-    static void main(String[] args)
+    static final void main(String[] args)
     {
         SpringApplication.run OmarScdfStagerApplication, args
     }
@@ -119,7 +112,7 @@ class OmarScdfStagerApplication implements CommandLineRunner {
     * Method to stage image using the params Map
     * @return boolean stating whether the image was staged successfully or not
     */
-    private boolean stageImage(HashMap params)
+    final private boolean stageImage(HashMap params)
     {
         boolean successfullyStaged = true
         def imageStager = new ImageStager()
@@ -174,8 +167,9 @@ class OmarScdfStagerApplication implements CommandLineRunner {
 
         String[] newArgs = ["dummy",
                             "--env",
-                            "OSSIM_PREFS_FILE=/usr/share/ossim/ossim-site-preferences",
-                            "--env","OSSIM_DATA=/data"]
+                            "OSSIM_PREFS_FILE=${ossimPrefsFile}",
+                            "--env",
+                            "OSSIM_DATA=${ossimData}"]
 
         log.debug("JNI Init arguments remaining: ${Init.instance().initialize(newArgs.size(), newArgs)}")
     }
