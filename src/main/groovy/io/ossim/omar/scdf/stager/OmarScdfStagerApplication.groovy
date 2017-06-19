@@ -3,6 +3,7 @@ package io.ossim.omar.scdf.stager
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
+import org.apache.tika.Tika
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.SpringApplication
@@ -15,6 +16,8 @@ import org.springframework.messaging.handler.annotation.SendTo
 import joms.oms.Init
 import joms.oms.ImageStager
 
+import java.nio.file.Paths
+
 /**
  * Created by slallier on 6/8/2017
  *
@@ -25,15 +28,23 @@ import joms.oms.ImageStager
 @Slf4j
 class OmarScdfStagerApplication implements CommandLineRunner
 {
+    /**************************************************
+     * mediaTypeList contains the media types supported
+     * by this class. The media types must be in the
+     * format recognized by Apache Tika.
+     * https://tika.apache.org/1.15/formats.html
+     ***************************************************/
+    final public static String[] MEDIA_TYPE_LIST = ['image/jpeg','image/tiff','image/nitf']
+
     // OSSIM Environment variables
 
     @Value('${ossim.prefs.file:/usr/share/ossim/ossim-site-preferences}')
     private String ossimPrefsFile
 
+    // Stager settings, such as whether or not to build histograms and overviews
+
     @Value('${ossim.data:/data}')
     private String ossimData
-
-    // Stager settings, such as whether or not to build histograms and overviews
 
     @Value('${stager.build.histograms:true}')
     private boolean buildHistograms
@@ -68,6 +79,7 @@ class OmarScdfStagerApplication implements CommandLineRunner
     final String handleStageRequest(final Message<?> message)
     {
         log.debug("Received message ${message} containing the name of a file to stage")
+        boolean stagedSuccessfully = false
 
         if (null != message.payload)
         {
@@ -89,7 +101,13 @@ class OmarScdfStagerApplication implements CommandLineRunner
 
             log.debug("Stager params:\n ${params}")
 
-            boolean stagedSuccessfully = stageImage(params)
+            // Only stage if the file is a valid image type
+            final String mediatype = new Tika().detect(Paths.get(filename))
+
+            if (MEDIA_TYPE_LIST.contains(mediatype))
+            {
+                stagedSuccessfully = stageImage(params)
+            }
 
             // Return filename and result of staging request
             JsonBuilder stagedFile = new JsonBuilder()
