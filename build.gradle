@@ -1,20 +1,36 @@
 buildscript {
     ext {
-      springBootVersion = '1.5.3.RELEASE'
+        springBootVersion = '1.5.3.RELEASE'
+        baseImage = "omar-base"
+        dockerStatementsOverride = {
+            [
+                "FROM ${project.dockerNamespaceUrl}${project.ext.baseImage}:${project.dockerAppTag}",
+                "MAINTAINER DigitalGlobe-RadiantBlue",
+                """LABEL com.digitalglobe.version="" """,
+                "COPY /${project.name}-${buildVersion}-${buildVersionTag}.jar /home/omar",
+                'RUN find $HOME -type d -exec chmod g+x {} +',
+                "ENV SPRING_PROFILES_ACTIVE=production",
+                "USER 1001",
+                "WORKDIR /home/omar",
+                "VOLUME /tmp",
+                "EXPOSE 8080",
+                "ENTRYPOINT java -server -Xms256m -Xmx1024m -Djava.awt.headless=true -XX:+CMSClassUnloadingEnabled -XX:+UseGCOverheadLimit -Djava.security.egd=file:/dev/./urandom -jar /home/omar/${project.name}-${buildVersion}-${buildVersionTag}.jar"
+                ]
+            }
+        }
+        if(System.env.OMAR_COMMON_PROPERTIES)
+        {
+            apply from: System.env.OMAR_COMMON_PROPERTIES
+        }
+        repositories {
+            mavenLocal()
+            maven { url "${ossimMavenProxy}" }
+            maven { url "https://repo.grails.org/grails/core" }
+        }
+        dependencies {
+            classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        }
     }
-	if(System.env.OMAR_COMMON_PROPERTIES)
-	{
-		apply from: System.env.OMAR_COMMON_PROPERTIES
-	}
-	repositories {
-		mavenLocal()
-		maven { url "${ossimMavenProxy}" }
-		maven { url "https://repo.grails.org/grails/core" }
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-	}
-}
 
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
@@ -34,33 +50,33 @@ repositories {
 
 
 ext {
-	springCloudVersion = 'Dalston.RELEASE'
+    springCloudVersion = 'Dalston.RELEASE'
 }
 
 dependencies {
-	compile('org.springframework.boot:spring-boot-starter')
+    compile('org.springframework.boot:spring-boot-starter')
     compile('org.springframework.cloud:spring-cloud-starter-aws')
     compile('org.springframework.cloud:spring-cloud-starter-config')
-	compile('org.springframework.cloud:spring-cloud-starter-aws-messaging')
-	compile('org.springframework.cloud:spring-cloud-stream-binder-kafka')
-	compile('org.codehaus.groovy:groovy')
-	compile('org.codehaus.groovy:groovy-json')
+    compile('org.springframework.cloud:spring-cloud-starter-aws-messaging')
+    compile('org.springframework.cloud:spring-cloud-stream-binder-kafka')
+    compile('org.codehaus.groovy:groovy')
+    compile('org.codehaus.groovy:groovy-json')
     compile("org.ossim:joms:1.9.0-${buildVersionTag}")
     compile('org.slf4j:slf4j-api:1.7.21')
-	compile('org.apache.tika:tika-core:1.15')
-	compile('org.apache.tika:tika-parsers:1.15')
-	testCompile('org.springframework.boot:spring-boot-starter-test')
+    compile('org.apache.tika:tika-core:1.15')
+    compile('org.apache.tika:tika-parsers:1.15')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
 dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from components.java
-		}
-	}
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
 }
