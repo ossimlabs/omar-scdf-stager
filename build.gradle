@@ -61,6 +61,7 @@ dependencies {
     compile('org.springframework.cloud:spring-cloud-stream-binder-rabbit')
     compile('org.codehaus.groovy:groovy')
     compile('org.codehaus.groovy:groovy-json')
+    compile("org.ossim:joms:1.9.0-RELEASE")
     compile('org.slf4j:slf4j-api:1.7.21')
     compile('org.apache.tika:tika-core:1.15')
     compile('org.apache.tika:tika-parsers:1.15')
