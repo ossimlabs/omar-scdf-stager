@@ -83,11 +83,10 @@ class OmarScdfStagerApplication implements CommandLineRunner
 
         if (null != message.payload)
         {
-            println"${message.headers.class.name}"
             // Parse filename from message
-            final def parsedJson = new JsonSlurper().parseText(message.headers)
+            //final def parsedJson = new JsonSlurper().parseText(message.headers)
 
-            final String filename = parsedJson.file_originalFile
+            final String filename = message.headers.file_originalFile
 
             // build histograms and overviews, stage image
             log.debug("Building histograms and overviews for ${filename}")
