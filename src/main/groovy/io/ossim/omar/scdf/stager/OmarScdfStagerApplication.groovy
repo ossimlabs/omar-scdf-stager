@@ -84,7 +84,7 @@ class OmarScdfStagerApplication implements CommandLineRunner
         if (null != message.payload)
         {
             // Parse filename from message
-            final def parsedJson = new JsonSlurper().parseText(message.header)
+            final def parsedJson = new JsonSlurper().parseText(message.headers)
 
             final String filename = parsedJson.file_originalFile
 
