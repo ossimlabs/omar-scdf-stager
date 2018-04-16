@@ -152,6 +152,7 @@ class OmarScdfStagerApplication implements CommandLineRunner
                 Integer entries = imageStager.getNumberOfEntries()
                 for (Integer i = 0; ((i < entries) && successfullyStaged); i++)
                 {
+                    Println("--------ENTRIES---------=${entries}")
                     imageStager.setEntry(i)
                     imageStager.setDefaults()
                     imageStager.setUseFastHistogramStagingFlag(params.useFastHistograms)
@@ -166,6 +167,8 @@ class OmarScdfStagerApplication implements CommandLineRunner
             {
                successfullyStaged = false
             }
+
+            Println("--------STAGED?---------=${successfullyStaged}")
         }
         catch (e)
         {
