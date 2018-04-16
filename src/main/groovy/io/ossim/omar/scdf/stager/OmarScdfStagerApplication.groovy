@@ -84,7 +84,8 @@ class OmarScdfStagerApplication implements CommandLineRunner
         if (null != message.payload)
         {
             // Parse filename from message
-            final def parsedJson = new JsonSlurper().parseText(message.payload)
+            final def parsedJson = new JsonSlurper().parseText(message.header)
+
             final String filename = parsedJson.file_originalFile
 
             // build histograms and overviews, stage image
