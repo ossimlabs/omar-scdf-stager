@@ -61,6 +61,9 @@ class OmarScdfStagerApplication implements CommandLineRunner
     @Value('${stager.overview.type:ossim_tiff_box}')
     private String overviewType
 
+    @Value('${file.type:NTF}')
+    private String fileType
+
     /**
      * The main entry point of the SCDF Sqs application.
      * @param args
@@ -84,9 +87,9 @@ class OmarScdfStagerApplication implements CommandLineRunner
         if (null != message.payload)
         {
             // Parse filename from message
-            final def parsedJson = new JsonSlurper().parseText(message.headers)
+            //final def parsedJson = new JsonSlurper().parseText(message.headers)
 
-            //final String filename = message.headers.file_originalFile
+            final String filename = message.headers.file_originalFile
 
             // build histograms and overviews, stage image
             log.debug("Building histograms and overviews for ${filename}")
