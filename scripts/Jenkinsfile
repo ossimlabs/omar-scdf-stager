@@ -46,8 +46,8 @@ node(""){
             {
                sh """
                 pushd ${workspaceDir}/${appName}/
-                ./gradlew artifactoryPublish
-                ./gradlew jarFileToS3
+                gradle artifactoryPublish
+                gradle jarFileToS3
                 popd
                 """
             }
@@ -62,7 +62,7 @@ node(""){
              // Run all tasks on the app. This includes pushing to OpenShift and S3.
              sh """
              pushd ${workspaceDir}/${appName}
-             ./gradlew ${GRADLE_TASK}
+             gradle ${GRADLE_TASK}
              popd
              """
          }
