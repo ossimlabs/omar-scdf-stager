@@ -84,10 +84,17 @@ class OmarScdfStagerApplication implements CommandLineRunner
         log.debug("Received message ${message} containing the name of a file to stage")
         boolean stagedSuccessfully = false
 
+        // Json to return
+        JsonBuilder indexedFile = new JsonBuilder()
+
+        // Parse filename from message
+        final def parsedJson = new JsonSlurper().parseText(message.payload)
+        log.debug("Parsed JSON: ${parsedJson}")
+
         if (null != message.payload)
         {
             // Parse filename from message
-            final String filename = message.payload.fileFullPath
+            final String filename = parsedJson.fileFullPath
 
             // build histograms and overviews, stage image
             log.debug("Building histograms and overviews for ${filename}")
