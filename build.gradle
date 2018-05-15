@@ -23,9 +23,9 @@ buildscript {
             apply from: System.env.OMAR_COMMON_PROPERTIES
         }
         repositories {
+            mavenLocal()
             maven { url "${ossimMavenProxy}" }
             if( !System.env.WWW_CONNECTED || Boolean.parseBoolean( System.env.WWW_CONNECTED ) ) {
-                mavenLocal()
                 maven { url "https://repo.grails.org/grails/core" }
             }
         }
@@ -45,13 +45,12 @@ apply plugin: "maven"
 sourceCompatibility = 1.8
 
 repositories {
+    mavenLocal()
     maven { url "${ossimMavenProxy}" }
     if( !System.env.WWW_CONNECTED || Boolean.parseBoolean( System.env.WWW_CONNECTED ) ) {
-        mavenLocal()
         mavenCentral()
     }
 }
-
 
 ext {
     springCloudVersion = 'Dalston.RELEASE'
